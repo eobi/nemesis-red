@@ -11,7 +11,7 @@ One container orchestrates **290+ Kali tools** over SSH to **your own** Kali box
 ![BYO](https://img.shields.io/badge/BYO-LLM%20key%20%7C%20local%20Ollama-7c5cff)
 ![License](https://img.shields.io/badge/license-commercial-lightgrey)
 
-[Get started](#quickstart-2-minutes) · [Create an account](https://app.nemesislabs.xyz/register) · [nemesislabs.xyz](https://nemesislabs.xyz)
+[Quickstart](#quickstart-2-minutes) · [Getting Started guide](GETTING_STARTED.md) · [Create an account](https://app.nemesislabs.xyz/register) · [nemesislabs.xyz](https://nemesislabs.xyz)
 
 </div>
 
@@ -83,14 +83,29 @@ Multi-arch: `linux/amd64` and `linux/arm64` (Apple Silicon included).
 
 ```bash
 docker run --rm -p 8000:8000 \
-  -e KALI_HOST=<your-kali-ip> -e KALI_PASSWORD=<kali-password> \
+  -e KALI_HOST=<your-kali-ip> -e KALI_USERNAME=<kali-user> -e KALI_PASSWORD=<kali-password> \
   -e OPENAI_API_KEY=<your-llm-key> \
+  ghcr.io/eobi/nemesis-red:latest
+```
+
+`KALI_USERNAME` is optional — it defaults to `kali` (the standard Kali account). Set it only if your box uses a different user (e.g. `root`).
+
+**Example** (real-looking values — just swap in yours):
+
+```bash
+docker run --rm -p 8000:8000 \
+  -e KALI_HOST=192.168.1.50 -e KALI_USERNAME=kali -e KALI_PASSWORD=kali \
+  -e OPENAI_API_KEY=sk-proj-Xa9k...your-real-key \
   ghcr.io/eobi/nemesis-red:latest
 ```
 
 **3. Open the console**
 
 Go to [http://127.0.0.1:8000](http://127.0.0.1:8000). It is already connected to your Kali.
+
+**4. Install the toolset (one click)**
+
+A stock Kali doesn't ship every tool. Open the **Install** page in the dashboard, pick your Kali connection, and click **Install** — it provisions the full 290+ tool arsenal onto your Kali over SSH (apt, pipx, and git-based tools). Already-installed tools are skipped, so it's safe to re-run any time. Do this once, then you're ready to scan.
 
 That is the Free tier, running locally with no license key. To unlock Pro, Business, or Enterprise features, add your key:
 

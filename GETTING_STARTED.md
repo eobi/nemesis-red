@@ -14,14 +14,16 @@ Super simple steps. Each one is a self-contained mini-guide you can follow (or f
 3. Run it, pointed at your Kali and your AI key:
    ```bash
    docker run --rm -p 8000:8000 \
-     -e KALI_HOST=<your-kali-ip> -e KALI_PASSWORD=<kali-password> \
+     -e KALI_HOST=<your-kali-ip> -e KALI_USERNAME=<kali-user> -e KALI_PASSWORD=<kali-password> \
      -e ANTHROPIC_API_KEY=<your-key> \
      ghcr.io/eobi/nemesis-red:latest
    ```
+   `KALI_USERNAME` is optional — it defaults to `kali`. Set it only if your box uses a different user (like `root`).
+
    **Example** (with real-looking values — just swap in yours):
    ```bash
    docker run --rm -p 8000:8000 \
-     -e KALI_HOST=192.168.1.50 -e KALI_PASSWORD=kali \
+     -e KALI_HOST=192.168.1.50 -e KALI_USERNAME=kali -e KALI_PASSWORD=kali \
      -e ANTHROPIC_API_KEY=sk-ant-api03-Xa9k...your-real-key \
      ghcr.io/eobi/nemesis-red:latest
    ```
@@ -54,7 +56,7 @@ Whatever you choose is used everywhere: Copilot, Vulnerability Assessment, and P
 **Example** (full command, Claude):
 ```bash
 docker run --rm -p 8000:8000 \
-  -e KALI_HOST=192.168.1.50 -e KALI_PASSWORD=kali \
+  -e KALI_HOST=192.168.1.50 -e KALI_USERNAME=kali -e KALI_PASSWORD=kali \
   -e ANTHROPIC_API_KEY=sk-ant-api03-Xa9k...your-real-key \
   ghcr.io/eobi/nemesis-red:latest
 ```
@@ -67,7 +69,7 @@ docker run --rm -p 8000:8000 \
 **Example** (full command, fully offline — no cloud key at all):
 ```bash
 docker run --rm -p 8000:8000 \
-  -e KALI_HOST=192.168.1.50 -e KALI_PASSWORD=kali \
+  -e KALI_HOST=192.168.1.50 -e KALI_USERNAME=kali -e KALI_PASSWORD=kali \
   -e OLLAMA_HOST=http://host.docker.internal:11434 \
   ghcr.io/eobi/nemesis-red:latest
 ```
