@@ -18,6 +18,13 @@ Super simple steps. Each one is a self-contained mini-guide you can follow (or f
      -e ANTHROPIC_API_KEY=<your-key> \
      ghcr.io/eobi/nemesis-red:latest
    ```
+   **Example** (with real-looking values — just swap in yours):
+   ```bash
+   docker run --rm -p 8000:8000 \
+     -e KALI_HOST=192.168.1.50 -e KALI_PASSWORD=kali \
+     -e ANTHROPIC_API_KEY=sk-ant-api03-Xa9k...your-real-key \
+     ghcr.io/eobi/nemesis-red:latest
+   ```
 4. Open **http://127.0.0.1:8000** and create your account.
 
 That's it. You're in, and already connected to your Kali.
@@ -39,17 +46,31 @@ That's it. You're in, and already connected to your Kali.
 
 Whatever you choose is used everywhere: Copilot, Vulnerability Assessment, and Pentest.
 
-**Cloud (Claude or GPT):**
+**Cloud (Claude or GPT):** add one of these env vars to your `docker run`, then pick it in **Settings → LLM**.
 ```bash
--e ANTHROPIC_API_KEY=sk-ant-...    # Claude
--e OPENAI_API_KEY=sk-...           # OpenAI
+-e ANTHROPIC_API_KEY=<your-key>    # Claude
+-e OPENAI_API_KEY=<your-key>       # OpenAI
 ```
-Then pick it in **Settings → LLM**.
+**Example** (full command, Claude):
+```bash
+docker run --rm -p 8000:8000 \
+  -e KALI_HOST=192.168.1.50 -e KALI_PASSWORD=kali \
+  -e ANTHROPIC_API_KEY=sk-ant-api03-Xa9k...your-real-key \
+  ghcr.io/eobi/nemesis-red:latest
+```
 
 **Fully offline (any local model, zero cost):**
-1. Install [Ollama](https://ollama.com), pull a model: `ollama pull qwen2.5-coder:7b` (or llama3, mistral, deepseek...).
-2. Add: `-e OLLAMA_HOST=http://host.docker.internal:11434`
+1. Install [Ollama](https://ollama.com), pull a model: `ollama pull qwen2.5-coder:7b` (or `ollama pull llama3`, `mistral`, `deepseek-coder`...).
+2. Add `-e OLLAMA_HOST=<your-ollama-url>` to your `docker run`.
 3. Pick your model in **Settings → LLM** — anything you've pulled shows up automatically. Nothing leaves your machine.
+
+**Example** (full command, fully offline — no cloud key at all):
+```bash
+docker run --rm -p 8000:8000 \
+  -e KALI_HOST=192.168.1.50 -e KALI_PASSWORD=kali \
+  -e OLLAMA_HOST=http://host.docker.internal:11434 \
+  ghcr.io/eobi/nemesis-red:latest
+```
 
 ---
 
@@ -57,6 +78,7 @@ Then pick it in **Settings → LLM**.
 
 1. Open the **console**.
 2. Run any tool in a session (e.g. `nmap -sV <target>`).
+   **Example:** `nmap -sV 192.168.1.50`
 3. Click the **✨ Intellicense** button on that session.
 4. Read: **Found** → **Why it matters** → **Next steps** — then click **Run** on a suggested command.
 
@@ -68,6 +90,7 @@ The AI reads your raw output and hands you the next commands. You stay in contro
 
 1. Open **Vulnerability Assessment**.
 2. Enter a **web URL** or a **network/CIDR**, pick a depth (Quick → Exhaustive).
+   **Examples:** `https://example.com` · `192.168.1.0/24` · `10.0.0.5`
 3. Click **Launch**.
 4. Watch the live reasoning graph build and findings pour in.
 5. Click **Download Report (PDF)** and **Download Remediation (PDF)**.
