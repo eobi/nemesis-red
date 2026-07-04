@@ -26,7 +26,7 @@ Nemesis Red is a cyber-operations platform for penetration testers. It runs as a
 Three ways to work, one platform:
 
 - **Copilot console.** A 290-tool arsenal with live multi-session terminals and an AI that reads every command's output, tells you why it matters, and hands you the next commands to run with one click.
-- **Autonomous Vulnerability Assessment.** Point it at a target (web URL, CIDR, AD realm, k8s, cloud account, mobile app, LLM API), pick a depth, and it plans and runs a full assessment as a live DAG. Hundreds of findings per run, cross-tool CVE fusion, and a signed PDF report at the end.
+- **Autonomous Vulnerability Assessment.** Point it at a web app or a network (a URL, host, or CIDR), pick a depth, and it plans and runs a full assessment as a live DAG. Hundreds of findings per run, cross-tool CVE fusion, and a signed PDF report at the end. Run it once, or **schedule it** to repeat on a cron (Business/Enterprise).
 - **Autonomous Pentest.** Take the findings from an assessment straight into live exploitation. It selects exploits, fires them, and captures real proof: credentials, hashes, database dumps, and shells.
 
 Everything is gated server-side by a short-lived signed license, so the tool cannot be cracked by editing the image, and every target stays inside your network.
@@ -98,11 +98,11 @@ That is the Free tier, running locally with no license key. To unlock Pro, Busin
   -e RED_LICENSE_KEY=<your-key-from-the-console> \
 ```
 
-Prefer Claude, or a local model? Swap the LLM env var:
+Prefer Claude, or run fully offline? One env var each (details in [LLM providers](#llm-providers--bring-your-own-or-fully-offline) below):
 
 ```bash
-  -e ANTHROPIC_API_KEY=<your-anthropic-key>     # Claude
-  -e OLLAMA_HOST=http://<your-ollama>:11434     # fully local, zero cost
+  -e ANTHROPIC_API_KEY=<your-anthropic-key>            # Claude
+  -e OLLAMA_HOST=http://host.docker.internal:11434     # any local model, zero cost
 ```
 
 Get a license key and manage billing at [app.nemesislabs.xyz](https://app.nemesislabs.xyz/register).
@@ -121,6 +121,51 @@ Everything is driven by environment variables. There is no file to edit.
 | `RED_LICENSE_KEY` | Your activation key. Unlocks your tier. Runs Free if unset. |
 
 Advanced: bind-mount your own `kali_config.ini` at `/app/kali_config.ini` if you prefer a file.
+
+---
+
+## LLM providers — bring your own, or fully offline
+
+The reasoning runs locally with your key. Whatever provider and model you pick is used consistently across the **Copilot, the autonomous VA, and the autonomous Pentest** — one choice, everywhere.
+
+### Anthropic (Claude)
+
+```bash
+-e ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Then pick Anthropic in the dashboard: **Settings → LLM**.
+
+### OpenAI
+
+```bash
+-e OPENAI_API_KEY=sk-...
+```
+
+Then pick OpenAI in **Settings → LLM**.
+
+### Ollama — fully offline, any model, zero cost
+
+Run **any** model you like on your own machine. No key, no cloud, nothing leaves your box. Ideal for sensitive or air-gapped engagements.
+
+1. Install [Ollama](https://ollama.com) and pull a model:
+
+   ```bash
+   ollama pull qwen2.5-coder:7b      # or llama3, mistral, deepseek, a custom fine-tune, ...
+   ```
+
+2. Point the container at your host's Ollama:
+
+   ```bash
+   -e OLLAMA_HOST=http://host.docker.internal:11434   # Docker Desktop (Mac / Windows)
+   -e OLLAMA_HOST=http://<your-lan-ip>:11434          # Linux
+   ```
+
+3. Every model you've pulled shows up in the dashboard's model picker automatically (**Settings → LLM**) — pick the one you want. A fresh install defaults to `qwen2.5-coder:7b`.
+
+> **Networking note.** Inside the container `localhost` is the *container*, not your machine, so `OLLAMA_HOST` must point at `host.docker.internal` (Docker Desktop) or your host's LAN IP. Make sure Ollama is listening on all interfaces first: `OLLAMA_HOST=0.0.0.0:11434 ollama serve`.
+
+**Add your own models:** anything you `ollama pull` appears in the picker automatically — no config, no restart. The list is your daemon, live.
 
 ---
 
