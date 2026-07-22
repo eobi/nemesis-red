@@ -2,13 +2,17 @@
 
 # Nemesis Red
 
-### Autonomous, LLM-driven offensive security in a single Docker image.
+### Autonomous offensive security that proves its findings.
 
-One container orchestrates **290+ Kali tools** over SSH to **your own** Kali box, reasons over the output with **your own** LLM key, and drives the full loop: recon, vulnerability assessment, and live exploitation with proof. Your targets, traffic, and findings never leave your environment.
+One container drives the full kill chain: recon, vulnerability assessment, live exploitation,
+and novel zero-day discovery. It runs the standard Kali toolchain over SSH to a box **you**
+control, reasons over the output with **your** LLM key, and reports nothing it cannot prove.
+Your targets, traffic, and findings never leave your environment.
 
 ![Platform](https://img.shields.io/badge/platform-linux%2Famd64%20%7C%20arm64-blue)
 ![Delivery](https://img.shields.io/badge/delivery-docker-2496ED)
 ![BYO](https://img.shields.io/badge/BYO-LLM%20key%20%7C%20local%20Ollama-7c5cff)
+![Verification](https://img.shields.io/badge/findings-verifier--gated-2ecc71)
 ![License](https://img.shields.io/badge/license-commercial-lightgrey)
 
 [Quickstart](#quickstart-2-minutes) · [Getting Started guide](GETTING_STARTED.md) · [Create an account](https://app.nemesislabs.xyz/register) · [nemesislabs.xyz](https://nemesislabs.xyz)
@@ -19,17 +23,97 @@ One container orchestrates **290+ Kali tools** over SSH to **your own** Kali box
 
 ---
 
+## Why this exists
+
+Autonomous scanning got cheap. Trustworthy autonomous scanning did not. Most "AI pentest"
+tools are a language model wrapped around a scanner. They are fast to demo and hard to trust,
+because a model asserting a bug is not the same as a bug. Run one against a real environment
+and you get a queue of plausible claims a human still has to verify by hand.
+
+Nemesis Red is built on the opposite premise. The report is only as good as the proof behind
+it, so proof is the gate. Every finding that reaches a report has cleared a deterministic
+check, not a model's opinion. A clean run reports nothing.
+
+**Most AI pentest tools generate findings. Nemesis Red proves them.**
+
+---
+
 ## What it is
 
-Nemesis Red is a cyber-operations platform for penetration testers. It runs as an orchestrator: the reasoning happens locally on your machine, the tools run on your Kali box over SSH, and the control plane only handles licensing. You bring the Kali, you bring the LLM key (or point it at a local Ollama), and Nemesis Red does the driving.
+Nemesis Red is a cyber-operations platform for penetration testers and security researchers.
+It runs as an orchestrator: the reasoning happens locally on your machine, the tools run on
+your Kali box over SSH, and the control plane only handles licensing. You bring the Kali, you
+bring the LLM key (or point it at a local Ollama), and Nemesis Red does the driving.
 
-Three ways to work, one platform:
+It does not reinvent the offensive toolchain. It commands it. The standard Kali arsenal
+(nmap, nuclei, sqlmap, ffuf, and the rest) runs over SSH, alongside purpose-built engines for
+API surface discovery, broken access control, an authenticated browser agent, LLM-application
+testing, and zero-day discovery. The reasoning loop reads every result and decides the next
+move. The value is the reasoning over the tools, not the size of the toolbox.
 
-- **Copilot console.** A 290-tool arsenal with live multi-session terminals and an AI that reads every command's output, tells you why it matters, and hands you the next commands to run with one click.
-- **Autonomous Vulnerability Assessment.** Point it at a web app or a network (a URL, host, or CIDR), pick a depth, and it plans and runs a full assessment as a live DAG. Hundreds of findings per run, cross-tool CVE fusion, and a signed PDF report at the end. Run it once, or **schedule it** to repeat on a cron (Business/Enterprise).
-- **Autonomous Pentest.** Take the findings from an assessment straight into live exploitation. It selects exploits, fires them, and captures real proof: credentials, hashes, database dumps, and shells.
+---
 
-Everything is gated server-side by a short-lived signed license, so the tool cannot be cracked by editing the image, and every target stays inside your network.
+## What sets it apart
+
+- **Verification, not assertion.** Web and network findings are scoreboard-verified against
+  the live target. Memory-safety findings climb a proof ladder from crash, to
+  attacker-controlled primitive, to a working proof of exploitation. Nothing ships on a
+  model's say-so.
+- **A reasoning loop, backed by published research.** The core is ReasonChain, a closed-loop
+  architecture that plans, acts, reads the result, and replans on accumulated evidence.
+  Cross-tool fusion is causally validated in a controlled ablation (Wilcoxon p < 0.001). The
+  paper and the code that regenerates every number are public.
+- **Zero-day discovery, not CVE lookup.** A dedicated engine hunts novel bugs in the
+  open-source components a target runs, proves exploitability, and assembles a
+  coordinated-disclosure packet. It has already found and reported a real one (below).
+- **AI application security.** It tests LLM features against the OWASP LLM Top 10, including
+  prompt injection, data exfiltration, and tool abuse, across API, chat, and browser.
+- **Yours, end to end.** Self-hosted orchestrator, bring your own key, license-gated so the
+  image cannot be cracked, and air-gap capable. Your data stays in your environment.
+
+---
+
+## Four ways to work, one platform
+
+- **Copilot console.** A live multi-session terminal with an AI that reads every command's
+  output, tells you why it matters, and hands you the next commands to run with one click.
+- **Autonomous vulnerability assessment.** Point it at a web app or a network (a URL, host,
+  or CIDR), pick a depth, and watch it plan and run a full assessment as a live reasoning
+  graph. Cross-tool CVE fusion, hundreds of findings per run, and a signed report at the end.
+  Run it once, or schedule it on a cron.
+- **Autonomous pentest.** Take the findings from an assessment straight into live
+  exploitation. It selects exploits, fires them, and captures real proof: credentials, hashes,
+  database dumps, and shells.
+- **Zero-day scanner.** Point the discovery engine at an asset or an open-source component.
+  It runs coverage-guided fuzzing and patch-seeded variant hunting, proves each candidate on
+  the proof ladder, and produces a reproducing trigger, a root cause, and a suggested fix.
+
+---
+
+## Proof it works, not a demo
+
+### A novel bug, found and disclosed
+
+The zero-day engine found a previously-unreported heap out-of-bounds write in
+[CWPack](https://github.com/clwi/CWPack), a widely-used MessagePack library for C. A
+truncated MessagePack stream is treated as a successful read, the parser advances past the
+end of its buffer, and the next refill calls `memmove` with a negative size (AddressSanitizer
+reports `negative-size-param`). The engine minimized a 74-byte trigger, root-caused it to the
+stream-refill handler, produced a short proof-of-vulnerability and a suggested patch, and
+reported it upstream under coordinated disclosure. Found by fuzzing the public source only,
+with no third-party systems touched.
+
+This is novel-bug discovery with a reproducing trigger and a fix, not a match against a known
+CVE list.
+
+### Depth on a live target
+
+A single autonomous run against an OWASP-class environment surfaced more than 300 CVE-backed
+findings, including multiple CVSS 9.8 issues (for example CVE-2024-38476, an Apache
+mod_rewrite SSRF), each reproducible from a clean checkout. That is roughly an order of
+magnitude more validated findings than a single-pass scan, measured in a controlled ablation,
+while precision on the labeled benchmark holds at 82 percent. The verifier gate is what keeps
+the noise out.
 
 ---
 
@@ -37,13 +121,17 @@ Everything is gated server-side by a short-lived signed license, so the tool can
 
 ### AI copilot that thinks alongside you
 
-The Intellicense copilot reads raw tool output and turns it into a plan: what was found, why it matters, and the exact next commands to run. Bring your own frontier model (Claude, GPT) or run it fully local on Ollama.
+The copilot reads raw tool output and turns it into a plan: what was found, why it matters,
+and the exact next commands to run. Bring your own frontier model (Claude, GPT) or run it
+fully local on Ollama.
 
 ![AI copilot analyzing scan output](assets/02-ai-copilot.png)
 
-### Autonomous vulnerability assessment as a live DAG
+### Autonomous vulnerability assessment as a live graph
 
-Launch an assessment and watch the reasoning graph build in real time: recon feeds enumeration, enumeration feeds identification, and the LLM fuses tool output into CVE-backed findings. Export a full report and a remediation plan as PDF.
+Launch an assessment and watch the reasoning graph build in real time: recon feeds
+enumeration, enumeration feeds identification, and the loop fuses tool output into CVE-backed
+findings. Export a full report and a remediation plan.
 
 ![Autonomous vuln assessor, network target](assets/03-vuln-assessor-network.png)
 
@@ -53,178 +141,49 @@ Works across target types, with evasive routing and a browser stage for web apps
 
 ### An AI browser agent that logs in for you
 
-Black-box or white-box, the browser agent drives a headed Chromium: it maps the app surface, logs in, and runs authenticated attacks (broken access control, CSRF, XSS, JWT, session), all captured through a proxy.
+Black-box or white-box, the browser agent drives a headed Chromium: it maps the app surface,
+logs in, and runs authenticated attacks (broken access control, CSRF, XSS, JWT, session), all
+captured through a proxy.
 
 ![AI browser agent](assets/06-ai-browser-agent.png)
 
 ### Live exploitation with captured proof
 
-The pentest engine turns findings into action and proves compromise: captured credentials and hashes, database dumps, and opened sessions, with a full exploit chain and audit log.
+It takes assessment findings into exploitation and captures the evidence: credentials, hashes,
+dumps, and shells.
 
-![Live exploitation with captured loot](assets/05-pentest-exploitation.png)
-
-> The pentest engine is currently in **beta**: actively monitored and improving fast.
+![Live exploitation](assets/05-pentest-exploitation.png)
 
 ---
 
 ## Quickstart (2 minutes)
 
-You need three things: a Kali box you control (any VM or host with SSH), an LLM key or a local Ollama, and Docker.
+See [GETTING_STARTED.md](GETTING_STARTED.md) for the full walkthrough. In short:
 
-**1. Pull the image**
+1. Create an account at [app.nemesislabs.xyz/register](https://app.nemesislabs.xyz/register).
+2. Have a Kali box reachable over SSH (a VM is fine), and an LLM key or a local Ollama.
+3. Pull and run the container, sign in, point it at your Kali, and launch a scan.
 
-```bash
-docker pull ghcr.io/eobi/nemesis-red:latest
-```
-
-Multi-arch: `linux/amd64` and `linux/arm64` (Apple Silicon included).
-
-**2. Run it, pointed at your Kali and your LLM key**
-
-```bash
-docker run --rm -p 8000:8000 \
-  -e KALI_HOST=<your-kali-ip> -e KALI_USERNAME=<kali-user> -e KALI_PASSWORD=<kali-password> \
-  -e OPENAI_API_KEY=<your-llm-key> \
-  ghcr.io/eobi/nemesis-red:latest
-```
-
-`KALI_USERNAME` is optional — it defaults to `kali` (the standard Kali account). Set it only if your box uses a different user (e.g. `root`).
-
-**Example** (real-looking values — just swap in yours):
-
-```bash
-docker run --rm -p 8000:8000 \
-  -e KALI_HOST=192.168.1.50 -e KALI_USERNAME=kali -e KALI_PASSWORD=kali \
-  -e OPENAI_API_KEY=sk-proj-Xa9k...your-real-key \
-  ghcr.io/eobi/nemesis-red:latest
-```
-
-**3. Open the console**
-
-Go to [http://127.0.0.1:8000](http://127.0.0.1:8000). It is already connected to your Kali.
-
-**4. Install the toolset (one click)**
-
-A stock Kali doesn't ship every tool. Open the **Install** page in the dashboard, pick your Kali connection, and click **Install** — it provisions the full 290+ tool arsenal onto your Kali over SSH (apt, pipx, and git-based tools). Already-installed tools are skipped, so it's safe to re-run any time. Do this once, then you're ready to scan.
-
-That is the Free tier, running locally with no license key. To unlock Pro, Business, or Enterprise features, add your key:
-
-```bash
-  -e RED_LICENSE_KEY=<your-key-from-the-console> \
-```
-
-Prefer Claude, or run fully offline? One env var each (details in [LLM providers](#llm-providers--bring-your-own-or-fully-offline) below):
-
-```bash
-  -e ANTHROPIC_API_KEY=<your-anthropic-key>            # Claude
-  -e OLLAMA_HOST=http://host.docker.internal:11434     # any local model, zero cost
-```
-
-Get a license key and manage billing at [app.nemesislabs.xyz](https://app.nemesislabs.xyz/register).
+Everything is gated server-side by a short-lived signed license, so the tool cannot be
+cracked by editing the image, and every target stays inside your network.
 
 ---
 
-## Configuration
+## Built for security researchers
 
-Everything is driven by environment variables. There is no file to edit.
-
-| Variable | What it does |
-|---|---|
-| `KALI_HOST` / `KALI_PORT` / `KALI_USERNAME` / `KALI_PASSWORD` | Your Kali SSH target (defaults: port 22, user `kali`, password auth). Change it any time from the dashboard, or restart with a new host. |
-| `KALI_KEY_PATH` | Use an SSH key instead of a password (mount the key and point here). |
-| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `OLLAMA_HOST` | Bring your own LLM. Inference runs client-side; you pay your provider directly, or run local Ollama for free. |
-| `RED_LICENSE_KEY` | Your activation key. Unlocks your tier. Runs Free if unset. |
-
-Advanced: bind-mount your own `kali_config.ini` at `/app/kali_config.ini` if you prefer a file.
-
----
-
-## LLM providers — bring your own, or fully offline
-
-The reasoning runs locally with your key. Whatever provider and model you pick is used consistently across the **Copilot, the autonomous VA, and the autonomous Pentest** — one choice, everywhere.
-
-### Anthropic (Claude)
-
-```bash
--e ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Then pick Anthropic in the dashboard: **Settings → LLM**.
-
-### OpenAI
-
-```bash
--e OPENAI_API_KEY=sk-...
-```
-
-Then pick OpenAI in **Settings → LLM**.
-
-### Ollama — fully offline, any model, zero cost
-
-Run **any** model you like on your own machine. No key, no cloud, nothing leaves your box. Ideal for sensitive or air-gapped engagements.
-
-1. Install [Ollama](https://ollama.com) and pull a model:
-
-   ```bash
-   ollama pull qwen2.5-coder:7b      # or llama3, mistral, deepseek, a custom fine-tune, ...
-   ```
-
-2. Point the container at your host's Ollama:
-
-   ```bash
-   -e OLLAMA_HOST=http://host.docker.internal:11434   # Docker Desktop (Mac / Windows)
-   -e OLLAMA_HOST=http://<your-lan-ip>:11434          # Linux
-   ```
-
-3. Every model you've pulled shows up in the dashboard's model picker automatically (**Settings → LLM**) — pick the one you want. A fresh install defaults to `qwen2.5-coder:7b`.
-
-> **Networking note.** Inside the container `localhost` is the *container*, not your machine, so `OLLAMA_HOST` must point at `host.docker.internal` (Docker Desktop) or your host's LAN IP. Make sure Ollama is listening on all interfaces first: `OLLAMA_HOST=0.0.0.0:11434 ollama serve`.
-
-**Add your own models:** anything you `ollama pull` appears in the picker automatically — no config, no restart. The list is your daemon, live.
-
----
-
-## Tiers
-
-| | Free | Pro | Business | Enterprise |
-|---|---|---|---|---|
-| Vulnerability assessment | 1 target | 10 targets | Unlimited | Unlimited |
-| Autonomous pentest | 3-run taste | Full | Full | Full |
-| AI copilot | Local model | Frontier | Team-shared | On-prem option |
-| Scheduling / continuous | — | Limited | Continuous | Continuous + SLA |
-| Reports | Watermarked | All formats | + Compliance, API | + White-label |
-
-Self-serve, monthly or annual, no setup fee. See current pricing and sign up at [nemesislabs.xyz](https://nemesislabs.xyz).
-
----
-
-## How it stays yours (and safe)
-
-- **Your data never leaves.** Tools run on your Kali, against your targets. Findings and traffic stay in your environment. The cloud only issues a signed license token.
-- **Bring your own key.** No token metering. Use your own OpenAI or Anthropic key, or run a local Ollama model at zero cost.
-- **Source-protected.** The engine ships compiled, with no readable source and no exploit recipes baked in. Premium content is fetched at runtime and license-gated.
-- **Device-bound licensing.** Short-lived, device-fingerprinted tokens with heartbeat and revocation, so credentials cannot be shared.
-
----
-
-## Requirements
-
-- **Docker** (Desktop or Engine), amd64 or arm64.
-- **A Kali box you control**, reachable over SSH. A stock Kali VM works. The engine installs any missing tools it needs.
-- **An LLM key** (OpenAI or Anthropic) **or a local Ollama**. For the Free tier a local model is enough.
+Findings come with a reproducing trigger, a root cause, and a suggested fix. The zero-day
+engine assembles the coordinated-disclosure packet for you. The core architecture is public
+and MIT-licensed ([ReasonChain](https://nemesislabs.xyz)), and every result in the research
+paper regenerates from a clean checkout. You self-host it, you bring your own key, and your
+work stays yours. When the engine finds nothing, it says so.
 
 ---
 
 ## Links
 
-- **Sign up / console:** [app.nemesislabs.xyz](https://app.nemesislabs.xyz/register)
-- **Product site:** [nemesislabs.xyz](https://nemesislabs.xyz)
-- **Image:** `ghcr.io/eobi/nemesis-red:latest`
+- Website: [nemesislabs.xyz](https://nemesislabs.xyz)
+- Create an account: [app.nemesislabs.xyz/register](https://app.nemesislabs.xyz/register)
+- Getting started: [GETTING_STARTED.md](GETTING_STARTED.md)
 
----
-
-<div align="center">
-
-Nemesis Red is a product of **Nemesis Labs**. Authorized testing only: use it only against systems you own or have explicit written permission to assess.
-
-</div>
+Nemesis Red is a product of Nemesis Labs. Commercial license. Bring your own Kali and your
+own LLM key.
