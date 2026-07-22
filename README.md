@@ -119,6 +119,15 @@ the noise out.
 
 ## See it work
 
+### Zero-day discovery, with a proof ladder
+
+The zero-day scanner runs a hunt to completion and shows every step: the proof
+ladder, the oracle that proved each finding, and the run history. This run against
+CWPack reached rung 3 (PROVEN_SECURITY), proven by the sanitizer oracle, with the
+crashing location and a saved reproducer. A clean run reports nothing.
+
+![Zero-day scanner, a proven finding on the proof ladder](assets/07-zeroday-scanner.png)
+
 ### AI copilot that thinks alongside you
 
 The copilot reads raw tool output and turns it into a plan: what was found, why it matters,
