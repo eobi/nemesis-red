@@ -124,6 +124,37 @@ It runs itself on schedule. Set your domains once, get continuous coverage.
 
 ---
 
+## 8. Zero-day discovery on Windows desktop software
+
+The Docker engine runs on Linux, so its zero-day scanner hunts source and Linux
+components. To hunt **installed Windows desktop software** (image viewers, PDF and
+office suites, media parsers) that a Linux container can't open, use the native
+companion, **Nemesis Red Zero-Day for Windows**. Same license, no extra entitlement.
+
+1. Download it from the console (Nemesis Red → *Zero-Day for Windows*) or directly:
+   [github.com/eobi/nemesis-red/releases/latest](https://github.com/eobi/nemesis-red/releases/latest).
+   It's a portable ZIP for Windows 10/11 and Server (x64), self-contained (bundled
+   Python + instrumentation) — nothing else to install.
+2. Extract it, ideally inside a **disposable VM snapshot**, and drop a few sample
+   input files (the formats your target app opens) into a `seeds\` folder.
+3. Run it against an app you own:
+   ```bat
+   nrzd.cmd --exe "C:\Program Files\Vendor\App.exe" --seeds seeds\sample.tga ^
+            --suffix .tga --argv-template "{file}"
+   ```
+   Add `--coverage off` for the full-grade proof path (the reliable first-chance
+   observer); `--coverage frida` adds coverage-guided discovery.
+
+It opens each mutated input with the app, catches the crash with a first-chance
+exception handler (so it sees faults the app's own error handling would swallow),
+verifies the crash un-instrumented, and grades the faulting instruction up the proof
+ladder — from a proven fault, to an attacker-controlled write-what-where, to a
+vendor-ready disclosure packet (reproducer, root cause, suggested fix). A clean run
+reports nothing. The target app is always operator-supplied under its own licence;
+findings and the packet stay on your machine.
+
+---
+
 ## That's the whole product
 
 Point it at your Kali, pick your AI, and let it work: recon, assessment, exploitation, and scheduled coverage — all local, all yours.
