@@ -90,6 +90,32 @@ move. The value is the reasoning over the tools, not the size of the toolbox.
 
 ---
 
+## Zero-day on Windows desktop software (companion package)
+
+The Red container runs on Linux, so it hunts source and Linux components. It cannot open a
+Windows desktop application. For zero-day discovery against **installed Windows software** (image
+viewers, PDF and office suites, media parsers), Nemesis Red ships a separate native Windows
+package: **Nemesis Red Zero-Day for Windows**. Same proof engine, aimed at closed `.exe` files.
+
+It opens each mutated input with the app under a first-chance exception handler, so it catches
+faults the app's own error handling would otherwise swallow; verifies the crash un-instrumented;
+and grades the faulting instruction into a primitive, from a proven fault, to an
+attacker-controlled write-what-where, to a vendor-ready disclosure packet (reproducer, root cause,
+suggested fix). A clean run reports nothing.
+
+**Download:** [Nemesis Red Zero-Day for Windows](https://github.com/eobi/nemesis-red/releases/latest)
+— portable ZIP, Windows 10/11 and Server (x64). It is self-contained (bundled Python and
+instrumentation); there is nothing else to install. Extract and run:
+
+```bat
+nrzd.cmd --exe "C:\Program Files\Vendor\App.exe" --seeds seeds\sample.tga --suffix .tga --argv-template "{file}"
+```
+
+Run only against software you own, in a disposable VM snapshot. The target application is always
+operator-supplied under its own licence; the package ships only the engine.
+
+---
+
 ## Proof it works, not a demo
 
 ### A novel bug, found and disclosed
